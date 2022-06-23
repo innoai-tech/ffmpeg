@@ -13,16 +13,23 @@ dagger.#Plan
 client: env: {
 	GIT_SHA: string | *""
 
-	CONTAINER_REGISTRY_PULL_PROXY: string | *""
 	LINUX_MIRROR:                  string | *""
+	CONTAINER_REGISTRY_PULL_PROXY: string | *""
 
 	GH_USERNAME: string | *""
 	GH_PASSWORD: dagger.#Secret
 }
 
-client: network: "unix:///var/run/docker.sock": connect: dagger.#Socket
-
 actions: ffmpeg: libify.#Project & {
+	auths: "ghcr.io": {
+		username: client.env.GH_USERNAME
+		secret:   client.env.GH_PASSWORD
+	}
+	mirror: {
+		linux: "\(client.env.LINUX_MIRROR)"
+		pull:  "\(client.env.CONTAINER_REGISTRY_PULL_PROXY)"
+	}
+
 	module:   "github.com/innoai-tech/ffmpeg"
 	version:  "5"
 	revision: "\(client.env.GIT_SHA)"
@@ -33,11 +40,11 @@ actions: ffmpeg: libify.#Project & {
 
 	// https://packages.debian.org/bullseye/ffmpeg
 	packages: {
-		"libavfilter-dev": ""
-		"libavcodec-dev":  ""
-		"libavformat-dev": ""
-		"libswscale-dev":  ""
-		"libavutil-dev":   ""
+		"libavfilter-dev": _
+		"libavcodec-dev":  _
+		"libavformat-dev": _
+		"libswscale-dev":  _
+		"libavutil-dev":   _
 	}
 
 	target: {
@@ -51,19 +58,11 @@ actions: ffmpeg: libify.#Project & {
 		]
 	}
 
-	mirror: {
-		linux: "\(client.env.LINUX_MIRROR)"
-		pull:  "\(client.env.CONTAINER_REGISTRY_PULL_PROXY)"
-	}
-
 	ship: {
 		name: strings.Replace(module, "github.com/", "ghcr.io/", -1)
-
-		push: auth: {
-			username: client.env.GH_USERNAME
-			secret:   client.env.GH_PASSWORD
-		}
-
-		load: host: client.network."unix:///var/run/docker.sock".connect
 	}
+
+	ship: load: host: client.network."unix:///var/run/docker.sock".connect
 }
+
+client: network: "unix:///var/run/docker.sock": connect: dagger.#Socket

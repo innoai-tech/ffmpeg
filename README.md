@@ -3,7 +3,7 @@
 ## Lib image
 
 ```shell
-/usr/pkg/<lib_name>/
+/usr/local/pkg/<lib_name>/
     <arch>/
       include/
       lib/

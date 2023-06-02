@@ -17,7 +17,7 @@ actions: ffmpeg: libify.#Project & {
 	version: "\(client.env.VERSION)"
 
 	base: {
-		source: "gcr.io/distroless/cc-debian11:latest"
+		source: "docker.io/library/debian:11"
 	}
 
 	// https://packages.debian.org/bullseye/ffmpeg
